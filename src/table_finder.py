@@ -50,6 +50,9 @@ def get_table_summary(table: TableInfo) -> dict:
     if not table:
         return {}
         
+    # 提取表头文本
+    header_texts = [cell['text'] for cell in table.content[0]] if table.content else []
+    
     summary = {
         "页码范围": table.page_numbers,
         "是否跨页": table.is_spanning,
@@ -59,7 +62,7 @@ def get_table_summary(table: TableInfo) -> dict:
         },
         "行数": len(table.content),
         "列数": len(table.content[0]) if table.content else 0,
-        "表头": table.content[0] if table.content else [],
+        "表头": header_texts,
     }
     
     # 如果存在置信度属性，则添加到摘要中

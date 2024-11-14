@@ -17,6 +17,11 @@ if __name__ == "__main__":
             
         print("\n表格内容预览（前5行）:")
         for row in table.content[:5]:
-            print(row)
+            # 显示每个单元格的文本和是否加粗
+            formatted_row = [
+                f"{cell['text']}{'(粗体)' if cell['is_bold'] else ''}" 
+                for cell in row
+            ]
+            print(formatted_row)
     else:
         print(f"从第 {start_page} 页开始未找到表格") 

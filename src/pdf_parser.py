@@ -69,7 +69,7 @@ def process_page(page) -> Optional[Dict]:
         target_text = config.target.table_name
         
         # 使用滑动窗口在页面中查找最佳匹配
-        window_size = len(target_text) * 3  # 使用3倍目标文本长度作为窗口大小
+        window_size = len(target_text) * 3  # 使用3倍目标文本长度为窗口大小
         best_match = None
         max_confidence = 0
         
@@ -132,36 +132,41 @@ def extract_tables(pdf_path: str, page_callback=None, start_page: int = 0) -> Li
         start_page = max(0, min(start_page, len(doc) - 1))
         
         for page_num in range(start_page, len(doc)):
-            page = doc[page_num]
-            
-            if page_callback:
-                page_callback(page_num, len(doc))
+            try:
+                page = doc[page_num]
                 
-            # 获取当前页面的表格
-            page_tables = _extract_page_tables(page)
-            
-            # 处理跨页表格
-            if current_spanning_table:
-                if _is_table_continued(current_spanning_table, page_tables):
-                    # 合并跨页表格
-                    current_spanning_table = _merge_spanning_table(
-                        current_spanning_table, 
-                        page_tables[0], 
-                        page_num
-                    )
-                    page_tables = page_tables[1:]  # 移除已合并的表格
-                else:
-                    # 当前跨页表格结束
-                    tables.append(current_spanning_table)
-                    current_spanning_table = None
-            
-            # 检查新的跨页表格
-            for table in page_tables:
-                if _is_table_spanning_to_next_page(table, page):
-                    current_spanning_table = table
-                else:
-                    tables.append(table)
-            
+                if page_callback:
+                    page_callback(page_num, len(doc))
+                    
+                # 获取当前页面的表格
+                page_tables = _extract_page_tables(page)
+                
+                # 处理跨页表格
+                if current_spanning_table:
+                    if page_tables and _is_table_continued(current_spanning_table, page_tables):
+                        # 合并跨页表格
+                        current_spanning_table = _merge_spanning_table(
+                            current_spanning_table, 
+                            page_tables[0], 
+                            page_num
+                        )
+                        page_tables = page_tables[1:]  # 移除已合并的表格
+                    else:
+                        # 当前跨页表格结束
+                        tables.append(current_spanning_table)
+                        current_spanning_table = None
+                
+                # 检查新的跨页表格
+                for table in page_tables:
+                    if _is_table_spanning_to_next_page(table, page):
+                        current_spanning_table = table
+                    else:
+                        tables.append(table)
+                        
+            except Exception as e:
+                logger.warning(f"处理页面 {page_num} 时发生错误: {str(e)}")
+                continue
+        
         # 添加最后一个跨页表格（如果有）
         if current_spanning_table:
             tables.append(current_spanning_table)
@@ -191,42 +196,99 @@ def _extract_page_tables(page: fitz.Page) -> List[TableInfo]:
         
         if tab.tables:
             for idx, table in enumerate(tab.tables):
-                # 获取表格内容
-                content = []
-                for row in table.extract():
-                    # 清理单元格内容
-                    cleaned_row = []
-                    for cell in row:
-                        cell_text = cell.strip() if isinstance(cell, str) else str(cell)
-                        # 获取单元格区域
-                        cell_rect = fitz.Rect(table.cells[len(content)][len(cleaned_row)].bbox)
-                        # 获取该区域内的文本spans
-                        cell_spans = [span for span in page.get_text("dict", clip=cell_rect)["blocks"]
-                                    if "lines" in span for line in span["lines"]
-                                    for span_text in line["spans"]]
+                try:
+                    # 获取表格内容
+                    content = []
+                    raw_table = table.extract()
+                    if not raw_table:
+                        continue
+                    
+                    # 获取表格的所有单元格信息
+                    cells_dict = {}
+                    for i in range(len(raw_table)):  # 行
+                        for j in range(len(raw_table[0])):  # 列
+                            try:
+                                # 获取单元格的边界框
+                                cell = table.cells[i][j]
+                                if isinstance(cell, (tuple, list)) and len(cell) >= 4:
+                                    # 如果cell是包含4个坐标的元组或列表
+                                    cells_dict[(i, j)] = fitz.Rect(cell)
+                                elif hasattr(cell, 'rect'):
+                                    # 如果cell是具有rect属性的对象
+                                    cells_dict[(i, j)] = cell.rect
+                                elif hasattr(cell, 'bbox'):
+                                    # 如果cell是具有bbox属性的对象
+                                    cells_dict[(i, j)] = fitz.Rect(cell.bbox)
+                            except Exception:
+                                continue
+                    
+                    for row_idx, row in enumerate(raw_table):
+                        cleaned_row = []
+                        for col_idx, cell_content in enumerate(row):
+                            # 处理单元格内容
+                            try:
+                                # 确保cell_content是字符串类型
+                                if isinstance(cell_content, dict):
+                                    cell_text = str(cell_content.get('text', '')).strip()
+                                else:
+                                    cell_text = str(cell_content).strip() if cell_content is not None else ""
+                                
+                                # 获取单元格区域和格式信息
+                                is_bold = False
+                                try:
+                                    cell_rect = cells_dict.get((row_idx, col_idx))
+                                    if cell_rect:
+                                        dict_output = page.get_text("dict", clip=cell_rect)
+                                        
+                                        # 检查文本spans中的字体信息
+                                        for block in dict_output.get("blocks", []):
+                                            for line in block.get("lines", []):
+                                                for span in line.get("spans", []):
+                                                    font = span.get("font", "")
+                                                    if isinstance(font, str) and (
+                                                        "Bold" in font.split(",")[0] 
+                                                        or font.lower().endswith("bd")
+                                                        or font.lower().endswith("b")
+                                                    ):
+                                                        is_bold = True
+                                                        break
+                                                if is_bold:
+                                                    break
+                                            if is_bold:
+                                                break
+                                                
+                                except Exception as e:
+                                    logger.debug(f"获取单元格格式信息失败: {str(e)}")
+                                
+                                # 存储单元格信息
+                                cleaned_row.append({
+                                    'text': cell_text,
+                                    'is_bold': is_bold
+                                })
+                                
+                            except Exception as e:
+                                logger.debug(f"处理单元格内容失败: {str(e)}")
+                                cleaned_row.append({
+                                    'text': '',
+                                    'is_bold': False
+                                })
+                                
+                        content.append(cleaned_row)
+                    
+                    if content:  # 只有当内容不为空时才创建TableInfo
+                        table_info = TableInfo(
+                            page_numbers=[page.number],
+                            bbox=list(table.bbox),
+                            content=content,
+                            confidence=1.0,
+                            is_spanning=False
+                        )
+                        tables.append(table_info)
                         
-                        # 检查是否有粗体文本
-                        is_bold = any("Bold" in span.get("font", "").split(",")[0] 
-                                    or span.get("font", "").lower().endswith("bd")
-                                    or span.get("font", "").lower().endswith("b")
-                                    for span in cell_spans)
-                        
-                        # 将文本和粗体信息一起存储
-                        cleaned_row.append({
-                            'text': cell_text,
-                            'is_bold': is_bold
-                        })
-                    content.append(cleaned_row)
-                
-                table_info = TableInfo(
-                    page_numbers=[page.number],
-                    bbox=list(table.bbox),
-                    content=content,
-                    confidence=1.0,
-                    is_spanning=False
-                )
-                tables.append(table_info)
-        
+                except Exception as e:
+                    logger.warning(f"处理表格 {idx} 时发生错误: {str(e)}")
+                    continue
+            
         return tables
         
     except Exception as e:
@@ -282,15 +344,15 @@ def _merge_spanning_table(prev_table: TableInfo, curr_table: TableInfo,
         is_spanning=True
     )
 
-def _is_header_row(row1: List[str], row2: List[str]) -> bool:
+def _is_header_row(row1: List[Dict], row2: List[Dict]) -> bool:
     """
     判断两行是否是相同的表头
     """
     if len(row1) != len(row2):
         return False
     
-    # 计算相似度
+    # 计算相似度（使用文本内容比较）
     similarity = sum(1 for a, b in zip(row1, row2) 
-                    if a.strip().lower() == b.strip().lower())
+                    if a['text'].strip().lower() == b['text'].strip().lower())
     return similarity / len(row1) > 0.8
     
