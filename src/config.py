@@ -5,6 +5,7 @@ from pathlib import Path
 # 获取项目根目录和输出目录
 PROJECT_ROOT = Path(__file__).parent.parent
 OUTPUT_DIR = PROJECT_ROOT / ".out"
+OUTPUT_DIR.mkdir(exist_ok=True) # 确保输出目录存在
 
 @dataclass
 class PDFProcessingConfig:
@@ -79,4 +80,13 @@ DEFAULT_CONFIG = Config(
         pdf_folder=Path('/Users/mark/Documents/Terminal evaluation report'),
         output_file=OUTPUT_DIR / "pdf_processing_results.xlsx"  # 使用OUTPUT_DIR
     )
-) 
+)
+STATUS_EMOJI = {
+    'pending': '⏳',
+    'opening': '📂',
+    'processing': '🔄',
+    'processing_page': '📄',
+    'success': '✅',
+    'not_found': '❌',
+    'parse_error': '⚠️',
+    'error': '💔'}

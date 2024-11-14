@@ -13,23 +13,9 @@ from rich.console import Console
 from rich.live import Live
 from rich.table import Table
 
-from src.config import DEFAULT_CONFIG, OUTPUT_DIR
+from src.config import DEFAULT_CONFIG, STATUS_EMOJI
 from src.model_loader import ModelLoader
-from src.pdf_parser import find_summary_text
-
-# 添加状态表情映射
-STATUS_EMOJI = {
-    'pending': '⏳',
-    'opening': '📂',
-    'processing': '🔄',
-    'processing_page': '📄',
-    'success': '✅',
-    'not_found': '❌',
-    'parse_error': '⚠️',
-    'error': '💔'}
-
-# 确保输出目录存在
-OUTPUT_DIR.mkdir(exist_ok=True)
+from src.pdf_parser.search_text import find_summary_text
 
 
 class ProgressTracker:
@@ -50,8 +36,8 @@ class ProgressTracker:
         with self.lock:
             if file_name not in self.results:
                 self.results[file_name] = {
-                    'status': status, 
-                    'details': details, 
+                    'status': status,
+                    'details': details,
                     'best_match': best_match,
                     'last_page': current_page,  # 新增：记录最后处理的页面
                     'total_pages': total_pages  # 新增：总页数
@@ -61,15 +47,12 @@ class ProgressTracker:
                     'status': status,
                     'details': details,
                     'last_page': current_page,
-                    'total_pages': total_pages
-                })
-                
+                    'total_pages': total_pages})
+
                 # 更新最佳匹配（如果新的匹配更好）
                 if best_match is not None:
                     current_best = self.results[file_name].get('best_match')
-                    if (not current_best or 
-                        (best_match.get('confidence', 0) > 
-                         current_best.get('confidence', 0))):
+                    if (not current_best or (best_match.get('confidence', 0) > current_best.get('confidence', 0))):
                         self.results[file_name]['best_match'] = best_match
 
             logger.debug(f"{file_name}: {status} - {details} - Best match: {best_match}")
@@ -107,13 +90,11 @@ class ProgressTracker:
 
         # 添加进度信息到标题，包含保存信息
         save_info = f"已保存: {self.last_save_count}" if self.last_save_count > 0 else ""
-        progress_text = ("，".join(filter(None, [
-            f"总进度: {completed}/{self.total_files} ({progress:.1%})",
-            f"已用时间: {format_timedelta(elapsed_time)}",
-            f"预计剩余: {format_timedelta(estimated_remaining)}",
-            f"目标匹配: {self.keywords}",
-            save_info
-        ])))
+        progress_text = ("，".join(filter(None,
+                                         [f"总进度: {completed}/{self.total_files} ({progress:.1%})",
+                                             f"已用时间: {format_timedelta(elapsed_time)}",
+                                             f"预计剩余: {format_timedelta(estimated_remaining)}",
+                                             f"目标匹配: {self.keywords}", save_info])))
 
         # 添加列
         table.add_column("序号", style="cyan", width=3)
@@ -153,7 +134,7 @@ class ProgressTracker:
         status = info['status']
         emoji = STATUS_EMOJI.get(status, '❓')
         details = str(info['details'] or '')  # 确保 details 是字符串
-        
+
         # 如果是错误状态，直接显示错误信息
         if status in ['error', 'parse_error']:
             best_match = info.get('error_msg', '')
@@ -167,16 +148,14 @@ class ProgressTracker:
                 matched_text = matched_text.replace('\n', '\\n')
                 if len(matched_text) > 30:  # 限制匹配文本长度
                     matched_text = matched_text[:30] + "..."
-                    
-                best_match = (
-                    f"页码:{best_match.get('page_num', 0) + 1:>3d} "
-                    f"相似度:{best_match.get('confidence', 0):.2f} "
-                    f"匹配:{matched_text}"
-                )
+
+                best_match = (f"页码:{best_match.get('page_num', 0) + 1:>3d} "
+                              f"相似度:{best_match.get('confidence', 0):.2f} "
+                              f"匹配:{matched_text}")
             else:
                 best_match = str(best_match)  # 确保转换为字符串
                 best_match = best_match.replace('\n', '\\n')  # 处理可能存在的换行符
-        
+
         # 提取文件名中的数字并格式化为3位数
         file_number = extract_number(filename)
         formatted_number = f"{file_number:03d}"
@@ -196,14 +175,14 @@ class ProgressTracker:
         elif status == 'not_found':
             row_style = "yellow"
 
-        table.add_row(
-            formatted_number,
-            emoji, 
-            truncated_filename, 
+        table.add_row(formatted_number,
+            emoji,
+            truncated_filename,
             details,
             best_match,
             style=row_style,
-            end_section=False  # 禁止行分隔
+            end_section=False
+            # 禁止行分隔
         )
 
     def update_save_count(self, count):
@@ -224,11 +203,11 @@ def load_page_progress(progress_file):
             df = pd.read_csv(progress_file)
             progress = {}
             best_matches = {}
-            
+
             for _, row in df.iterrows():
                 fname = row['file_name']
                 progress[fname] = row['last_page']
-                
+
                 # 重建最优匹配信息
                 if pd.notna(row['best_match_confidence']):
                     best_matches[fname] = {
@@ -236,9 +215,9 @@ def load_page_progress(progress_file):
                         'confidence': float(row['best_match_confidence']),
                         'matched_text': row['best_match_text'],
                         'text_bbox': eval(row['best_match_bbox']) if pd.notna(row['best_match_bbox']) else None,
-                        'table_bbox': eval(row['best_match_table_bbox']) if pd.notna(row['best_match_table_bbox']) else None
-                    }
-            
+                        'table_bbox': eval(row['best_match_table_bbox']) if pd.notna(
+                            row['best_match_table_bbox']) else None}
+
             logger.info(f"已加载 {len(progress)} 个文件的处理进度")
             return progress, best_matches
         except Exception as e:
@@ -254,7 +233,7 @@ def save_page_progress(page_progress, progress_file, progress_tracker):
             # 获取文件的当前信息，包括最优匹配
             current_info = progress_tracker.results.get(fname, {})
             best_match = current_info.get('best_match', {})
-            
+
             record = {
                 'file_name': fname,
                 'last_page': page,
@@ -262,10 +241,9 @@ def save_page_progress(page_progress, progress_file, progress_tracker):
                 'best_match_confidence': best_match.get('confidence') if best_match else None,
                 'best_match_text': best_match.get('matched_text') if best_match else None,
                 'best_match_bbox': str(best_match.get('text_bbox')) if best_match else None,
-                'best_match_table_bbox': str(best_match.get('table_bbox')) if best_match else None
-            }
+                'best_match_table_bbox': str(best_match.get('table_bbox')) if best_match else None}
             records.append(record)
-            
+
         df = pd.DataFrame(records)
         df.to_csv(progress_file, index=False)
         logger.debug(f"已保存页面进度到 {progress_file}")
@@ -282,30 +260,21 @@ def process_single_pdf(pdf_path, progress_tracker: ProgressTracker, start_page=0
         def page_callback(page_num, total_pages, best_match=None):
             """页面处理进度回调"""
             details = f"正在处理第 {page_num + 1:>3d}/{total_pages:>3d} 页..."
-            progress_tracker.update_progress(
-                pdf_path.name, 
-                'processing_page', 
-                details, 
-                best_match,  # 直接传递 best_match 字典
+            progress_tracker.update_progress(pdf_path.name,
+                'processing_page',
+                details,
+                best_match,
+                # 直接传递 best_match 字典
                 current_page=page_num,
-                total_pages=total_pages
-            )
+                total_pages=total_pages)
 
         # 修改 find_summary_text 调用，添加 start_page 参数
-        result = find_summary_text(
-            str(pdf_path), 
-            page_callback=page_callback,
-            start_page=start_page
-        )
+        result = find_summary_text(str(pdf_path), page_callback=page_callback, start_page=start_page)
 
         if result:
             details = f"找到目标! 页码:{result['page_num'] + 1}, 相似度:{result['confidence']:.2f}"
             # 直接传递 result 作为 best_match
-            progress_tracker.update_progress(
-                pdf_path.name, 
-                'success', 
-                details,
-                result  # 直接传递结果字典
+            progress_tracker.update_progress(pdf_path.name, 'success', details, result  # 直接传递结果字典
             )
             return {
                 'file_name': pdf_path.name,
@@ -314,8 +283,7 @@ def process_single_pdf(pdf_path, progress_tracker: ProgressTracker, start_page=0
                 'matched_text': result['matched_text'],
                 'confidence': result['confidence'],
                 'text_bbox': str(result['text_bbox']),
-                'table_bbox': str(result['table_bbox']) if result['table_bbox'] else None
-            }
+                'table_bbox': str(result['table_bbox']) if result['table_bbox'] else None}
         else:
             progress_tracker.update_progress(pdf_path.name, 'not_found', "搜索完成，未找到目标文字")
             return {
@@ -326,8 +294,7 @@ def process_single_pdf(pdf_path, progress_tracker: ProgressTracker, start_page=0
                 'confidence': None,
                 'text_bbox': None,
                 'table_bbox': None,
-                'error_msg': '未找到目标文字'
-            }
+                'error_msg': '未找到目标文字'}
     except Exception as e:
         error_msg = str(e)
         if "not a textpage" in error_msg.lower():
@@ -340,8 +307,7 @@ def process_single_pdf(pdf_path, progress_tracker: ProgressTracker, start_page=0
                 'confidence': None,
                 'text_bbox': None,
                 'table_bbox': None,
-                'error_msg': '页面无法解析为文本'
-            }
+                'error_msg': '页面无法解析为文本'}
         else:
             progress_tracker.update_progress(pdf_path.name, 'error', f"错误: {error_msg[:50]}...")
             return {
@@ -352,8 +318,7 @@ def process_single_pdf(pdf_path, progress_tracker: ProgressTracker, start_page=0
                 'confidence': None,
                 'text_bbox': None,
                 'table_bbox': None,
-                'error_msg': error_msg
-            }
+                'error_msg': error_msg}
 
 
 def load_previous_results(output_file):
@@ -412,13 +377,8 @@ def process_pdf_files(folder_path, keywords: str, max_workers=None):
         initial_status = 'pending'
         initial_details = "等待处理"
         best_match = best_matches.get(pdf_file.name)
-        
-        progress_tracker.update_progress(
-            pdf_file.name,
-            initial_status,
-            initial_details,
-            best_match=best_match
-        )
+
+        progress_tracker.update_progress(pdf_file.name, initial_status, initial_details, best_match=best_match)
 
     # 注册程序退出时的保存函数
     def save_on_exit():
@@ -447,24 +407,17 @@ def process_pdf_files(folder_path, keywords: str, max_workers=None):
     display_tracker = DisplayUpdatingTracker(progress_tracker)
 
     try:
-        with Live(progress_tracker.create_progress_table(),
-                  console=console,
-                  refresh_per_second=4) as live_display:
+        with Live(progress_tracker.create_progress_table(), console=console, refresh_per_second=4) as live_display:
             live = live_display
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = []
-                
+
                 # 提交任务时考虑页面进度
                 for pdf_path in pdf_files:
                     start_page = page_progress.get(pdf_path.name, 0)
                     logger.debug(f"提交任务: {pdf_path.name}, 从第 {start_page + 1} 页开始")
-                    future = executor.submit(
-                        process_single_pdf, 
-                        pdf_path, 
-                        display_tracker,
-                        start_page=start_page
-                    )
+                    future = executor.submit(process_single_pdf, pdf_path, display_tracker, start_page=start_page)
                     futures.append((future, pdf_path))
 
                 # 处理完成的任务
@@ -473,31 +426,31 @@ def process_pdf_files(folder_path, keywords: str, max_workers=None):
                         # 找到对应的 pdf_path
                         pdf_path = next(p for f, p in futures if f == future)
                         result = future.result(timeout=300)
-                        
+
                         # 更新页面进度和最优匹配
                         current_info = progress_tracker.results.get(pdf_path.name, {})
                         current_page = current_info.get('last_page')
                         best_match = current_info.get('best_match')
-                        
+
                         if current_page is not None:
                             page_progress[pdf_path.name] = current_page
-                            
+
                         # 只有在成功找到目标时才添加到结果中
                         if result['status'] == 'success':
                             results.append(result)
                             # 从页面进度中移除已完成的文件
                             page_progress.pop(pdf_path.name, None)
-                        
+
                         # 定期保存进度
                         if len(results) % 2 == 0:
                             save_results_to_csv(results, progress_file)
                             save_page_progress(page_progress, page_progress_file, progress_tracker)
                             progress_tracker.update_save_count(len(results))
-                            
+
                     except concurrent.futures.TimeoutError:
                         logger.error(f"处理文件超时: {pdf_path.name}")
                         save_current_progress(pdf_path, progress_tracker, page_progress, page_progress_file)
-                        
+
                     except Exception as e:
                         logger.error(f"处理文件出错: {pdf_path.name}, 错误: {str(e)}")
                         save_current_progress(pdf_path, progress_tracker, page_progress, page_progress_file)
@@ -522,6 +475,7 @@ def process_pdf_files(folder_path, keywords: str, max_workers=None):
         save_page_progress(page_progress, page_progress_file, progress_tracker)
 
     return results
+
 
 def save_current_progress(pdf_path, progress_tracker, page_progress, page_progress_file):
     """保存当前处理进度的辅助函数"""
