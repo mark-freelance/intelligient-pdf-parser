@@ -225,7 +225,6 @@ def _extract_page_tables(page: fitz.Page) -> List[TableInfo]:
                     for row_idx, row in enumerate(raw_table):
                         cleaned_row = []
                         for col_idx, cell_content in enumerate(row):
-                            # 处理单元格内容
                             try:
                                 # 确保cell_content是字符串类型
                                 if isinstance(cell_content, dict):
@@ -240,18 +239,32 @@ def _extract_page_tables(page: fitz.Page) -> List[TableInfo]:
                                     if cell_rect:
                                         dict_output = page.get_text("dict", clip=cell_rect)
                                         
-                                        # 检查文本spans中的字体信息
+                                        # 改进的加粗检测逻辑
                                         for block in dict_output.get("blocks", []):
                                             for line in block.get("lines", []):
                                                 for span in line.get("spans", []):
-                                                    font = span.get("font", "")
-                                                    if isinstance(font, str) and (
-                                                        "Bold" in font.split(",")[0] 
-                                                        or font.lower().endswith("bd")
-                                                        or font.lower().endswith("b")
-                                                    ):
+                                                    # 检查字体名称中的加粗标识
+                                                    font = span.get("font", "").lower()
+                                                    flags = span.get("flags", 0)
+                                                    
+                                                    # 通过字体名称检测
+                                                    if any(bold_mark in font for bold_mark in [
+                                                        "bold", "bd", "-b", "black", "heavy"
+                                                    ]):
                                                         is_bold = True
                                                         break
+                                                        
+                                                    # 通过字体flags检测 (16是加粗标志)
+                                                    if flags & 16:
+                                                        is_bold = True
+                                                        break
+                                                        
+                                                    # 通过字体粗细检测
+                                                    weight = span.get("weight", 0)
+                                                    if weight >= 600:  # 600及以上通常表示加粗
+                                                        is_bold = True
+                                                        break
+                                                        
                                                 if is_bold:
                                                     break
                                             if is_bold:
