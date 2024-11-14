@@ -2,6 +2,10 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict
 from pathlib import Path
 
+# 获取项目根目录和输出目录
+PROJECT_ROOT = Path(__file__).parent.parent
+OUTPUT_DIR = PROJECT_ROOT / ".out"
+
 @dataclass
 class PDFProcessingConfig:
     # PDF处理相关配置
@@ -29,7 +33,7 @@ class LogConfig:
     # 日志相关配置
     console_level: str = "INFO"
     file_level: str = "DEBUG"
-    log_file: Path = Path("pdf_parser.log")
+    log_file: Path = OUTPUT_DIR / "pdf_parser.log"  # 使用OUTPUT_DIR
     log_format: str = "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
     console_format: str = "<green>{time:HH:mm:ss}</green> | {message}"
     rotation: str = "100 MB"
@@ -71,6 +75,6 @@ PDF处理配置:
 DEFAULT_CONFIG = Config(
     pdf=PDFProcessingConfig(
         pdf_folder=Path('/Users/mark/Documents/Terminal evaluation report'),
-        output_file=Path('pdf_processing_results.xlsx')
+        output_file=OUTPUT_DIR / "pdf_processing_results.xlsx"  # 使用OUTPUT_DIR
     )
 ) 
