@@ -13,7 +13,7 @@ class TableInfo:
     """表格信息数据类"""
     page_numbers: List[int]  # 表格所在的页码列表（跨页的情况可能有多个）
     bbox: List[float]  # 表格边界框 [x0, y0, x1, y1]
-    content: List[List[str]]  # 表格内容，二维数组
+    content: List[List[Dict]]  # 表格内容，每个单元格包含文本和格式信息
     confidence: float  # 表格检测的置信度
     is_spanning: bool = False  # 是否是跨页表格
 
@@ -186,7 +186,6 @@ def _extract_page_tables(page: fitz.Page) -> List[TableInfo]:
         List[TableInfo]: 页面中的表格列表
     """
     try:
-        # 使用PyMuPDF的表格检测
         tables = []
         tab = page.find_tables()
         
@@ -196,19 +195,35 @@ def _extract_page_tables(page: fitz.Page) -> List[TableInfo]:
                 content = []
                 for row in table.extract():
                     # 清理单元格内容
-                    cleaned_row = [
-                        cell.strip() if isinstance(cell, str) else str(cell)
-                        for cell in row
-                    ]
+                    cleaned_row = []
+                    for cell in row:
+                        cell_text = cell.strip() if isinstance(cell, str) else str(cell)
+                        # 获取单元格区域
+                        cell_rect = fitz.Rect(table.cells[len(content)][len(cleaned_row)].bbox)
+                        # 获取该区域内的文本spans
+                        cell_spans = [span for span in page.get_text("dict", clip=cell_rect)["blocks"]
+                                    if "lines" in span for line in span["lines"]
+                                    for span_text in line["spans"]]
+                        
+                        # 检查是否有粗体文本
+                        is_bold = any("Bold" in span.get("font", "").split(",")[0] 
+                                    or span.get("font", "").lower().endswith("bd")
+                                    or span.get("font", "").lower().endswith("b")
+                                    for span in cell_spans)
+                        
+                        # 将文本和粗体信息一起存储
+                        cleaned_row.append({
+                            'text': cell_text,
+                            'is_bold': is_bold
+                        })
                     content.append(cleaned_row)
                 
-                # 创建TableInfo对象，设置默认confidence为1.0
                 table_info = TableInfo(
                     page_numbers=[page.number],
-                    bbox=list(table.bbox),  # 转换为list以便序列化
+                    bbox=list(table.bbox),
                     content=content,
-                    confidence=1.0,  # 由于PyMuPDF的Table对象没有confidence属性，设置默认值
-                    is_spanning=False  # 初始设置为非跨页
+                    confidence=1.0,
+                    is_spanning=False
                 )
                 tables.append(table_info)
         
