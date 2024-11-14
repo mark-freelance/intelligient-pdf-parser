@@ -13,9 +13,9 @@ from rich.console import Console
 from rich.live import Live
 from rich.table import Table
 
-from src.config import DEFAULT_CONFIG, STATUS_EMOJI
-from src.model_loader import ModelLoader
-from src.pdf_parser.search_text import find_summary_text
+from v1_plain.src.config import DEFAULT_CONFIG, STATUS_EMOJI
+from v1_plain.src import ModelLoader
+from v1_plain.src.pdf_parser.search_text import find_summary_text
 
 
 class ProgressTracker:

@@ -4,8 +4,8 @@ import fitz
 from loguru import logger
 from sklearn.metrics.pairwise import cosine_similarity
 
-from src.config import DEFAULT_CONFIG as config
-from src.model_loader import ModelLoader
+from v1_plain.src import DEFAULT_CONFIG as config
+from v1_plain.src import ModelLoader
 
 # 获取模型和目标文本
 model = ModelLoader.get_model()
