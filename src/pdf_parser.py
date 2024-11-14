@@ -6,136 +6,98 @@ from loguru import logger
 from .model_loader import ModelLoader
 from .config import DEFAULT_CONFIG as config
 
-def find_summary_text(pdf_path: str, page_callback=None) -> Optional[Dict]:
+def find_summary_text(pdf_path: str, page_callback=None, start_page=0) -> Optional[Dict]:
     """
-    在PDF文档中查找目标文字（通常是表格标题）
-    返回相似度最高的匹配结果，包含文字位置信息和下方表格的位置
-
+    查找PDF中的目标文本，支持从指定页面开始处理
+    
     Args:
         pdf_path: PDF文件路径
-        page_callback: 页面处理进度回调函数，接收当前页码、总页数和最优匹配信息作为参数
-    Returns:
-        dict: 包含匹配结果的字典，如果未找到则返回 None
+        page_callback: 页面处理进度回调函数
+        start_page: 开始处理的页面索引（从0开始）
     """
-    total_start_time = time.time()
-    best_match = {
-        'confidence': -1,
-        'page_num': None,
-        'text_bbox': None,  # 匹配文字的位置
-        'table_bbox': None,  # 文字下方表格的位置
-        'matched_text': None
-    }
-
+    doc = fitz.open(pdf_path)
+    best_match = None
+    
     try:
-        # 获取目标文本的编码
-        target_text = config.target.table_name
-        target_embedding = ModelLoader.encode_text(target_text)
+        # 确保 start_page 在有效范围内
+        start_page = max(0, min(start_page, len(doc) - 1))
         
-        pdf_start_time = time.time()
-        logger.debug("打开PDF文档...")
-        with fitz.open(pdf_path) as doc:
-            logger.debug(f"PDF总页数: {len(doc)}, 打开耗时: {time.time() - pdf_start_time:.2f}秒")
-            
-            total_pages = len(doc)
-            for page_num in range(total_pages):
-                page_start_time = time.time()
-                logger.debug(f"处理第 {page_num + 1} 页")
+        for page_num in range(start_page, len(doc)):
+            # 处理每一页...
+            if page_callback:
+                page_callback(page_num, len(doc), best_match)
                 
-                # 调用回调函数报告当前进度和最优匹配
-                if page_callback:
-                    # 只有当找到过匹配时才传递best_match
-                    current_best = best_match if best_match['confidence'] > -1 else None
-                    page_callback(page_num, total_pages, current_best)
+            # 如果找到更好的匹配，更新 best_match
+            current_match = process_page(doc[page_num])  # 假设这是处理单页的函数
+            if current_match and (not best_match or 
+                current_match['confidence'] > best_match['confidence']):
+                best_match = current_match
                 
-                try:
-                    page = doc[page_num]
-                    
-                    # 获取页面上的所有文本块
-                    blocks = page.get_text("dict")["blocks"]
-                    
-                    for block in blocks:
-                        if "lines" not in block:
-                            continue
-                            
-                        # 获取文本块的内容
-                        text = " ".join([span["text"] for line in block["lines"] 
-                                       for span in line["spans"]]).strip()
-                        
-                        if not text:
-                            continue
-                            
-                        # 计算语义相似度
-                        text_embedding = ModelLoader.encode_text(text)
-                        similarity = cosine_similarity(
-                            [target_embedding], 
-                            [text_embedding]
-                        )[0][0]
-                        
-                        if similarity > best_match['confidence']:
-                            # 获取文本块的位置
-                            text_bbox = block["bbox"]
-                            
-                            # 获取上下文
-                            context_before = ""
-                            context_after = ""
-                            
-                            # 遍历blocks寻找上下文
-                            blocks_list = list(blocks)
-                            current_block_index = blocks_list.index(block)
-                            
-                            # 获取前一个文本块的内容
-                            if current_block_index > 0:
-                                prev_block = blocks_list[current_block_index - 1]
-                                if "lines" in prev_block:
-                                    context_before = " ".join([span["text"] for line in prev_block["lines"] 
-                                                             for span in line["spans"]]).strip()
-                            
-                            # 获取后一个文本块的内容
-                            if current_block_index < len(blocks_list) - 1:
-                                next_block = blocks_list[current_block_index + 1]
-                                if "lines" in next_block:
-                                    context_after = " ".join([span["text"] for line in next_block["lines"] 
-                                                            for span in line["spans"]]).strip()
-                            
-                            # 查找文本块下方的表格
-                            table_bbox = None
-                            try:
-                                table_finder = page.find_tables()
-                                for table in table_finder.tables:
-                                    # 检查表格是否在文本块下方
-                                    if (table.bbox[1] > text_bbox[3] and  # 表格在文本下方
-                                        table.bbox[0] >= text_bbox[0] - config.target.table_position_tolerance and  # 表格与文本水平位置接近
-                                        table.bbox[2] <= text_bbox[2] + config.target.table_position_tolerance and
-                                        table.bbox[1] - text_bbox[3] < config.target.table_position_tolerance):  # 表格与文本垂直距离不太远
-                                        table_bbox = table.bbox
-                                        break
-                                del table_finder
-                            except Exception as e:
-                                logger.debug(f"表格检测失败: {str(e)}")
-                            
-                            best_match = {
-                                'page_num': page_num,
-                                'text_bbox': [text_bbox[0], text_bbox[1], text_bbox[2], text_bbox[3]],
-                                'table_bbox': ([table_bbox[0], table_bbox[1], table_bbox[2], table_bbox[3]] 
-                                             if table_bbox else None),
-                                'matched_text': text,
-                                'context_before': context_before,
-                                'context_after': context_after,
-                                'confidence': float(similarity)
-                            }
-                            
-                            # 找到更好的匹配时立即通知回调
-                            if page_callback:
-                                page_callback(page_num, total_pages, best_match)
-                            
-                except Exception as e:
-                    logger.warning(f"处理第 {page_num + 1} 页时发生错误: {str(e)}")
-                    continue
+        return best_match
+    finally:
+        doc.close()
+    
+def process_page(page) -> Optional[Dict]:
+    """
+    处理单个PDF页面，查找目标文本
+    
+    Args:
+        page: fitz.Page对象
+        
+    Returns:
+        Dict: 包含匹配结果的字典，如果没有找到匹配则返回None
+    """
+    try:
+        # 获取页面文本
+        text = page.get_text()
+        if not text.strip():
+            return None
             
-            # 返回最佳匹配结果
-            return best_match if best_match['confidence'] > -1 else None
+        # 获取模型和目标文本
+        model = ModelLoader.get_model()
+        target_text = config.target.table_name
+        
+        # 使用滑动窗口在页面中查找最佳匹配
+        window_size = len(target_text) * 3  # 使用3倍目标文本长度作为窗口大小
+        best_match = None
+        max_confidence = 0
+        
+        # 获取所有文本块
+        blocks = page.get_text("blocks")
+        
+        for block in blocks:
+            block_text = block[4]  # block[4]是文本内容
+            if not block_text.strip():
+                continue
+                
+            # 计算相似度
+            text_embedding = model.encode([block_text])
+            target_embedding = model.encode([target_text])
+            confidence = float(cosine_similarity(text_embedding, target_embedding)[0][0])
+            
+            if confidence > max_confidence:
+                # 提取上下文
+                context_before = block_text[:50]  # 取前50个字符作为上文
+                context_after = block_text[-50:]  # 取后50个字符作为下文
+                
+                best_match = {
+                    'page_num': page.number,
+                    'matched_text': block_text,
+                    'confidence': confidence,
+                    'text_bbox': block[:4],  # 文本块的边界框
+                    'table_bbox': None,  # 如果需要表格边界框，可以在这里添加
+                    'context_before': context_before,
+                    'context_after': context_after
+                }
+                max_confidence = confidence
+        
+        # 使用正确的配置属性名称：min_confidence_threshold
+        if best_match and best_match['confidence'] >= config.target.min_confidence_threshold:
+            return best_match
+            
+        return None
         
     except Exception as e:
-        logger.error(f"处理PDF时发生错误: {str(e)}", exc_info=True)
+        logger.error(f"处理页面时发生错误: {str(e)}")
         return None
     

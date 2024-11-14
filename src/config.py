@@ -11,6 +11,8 @@ class PDFProcessingConfig:
     # PDF处理相关配置
     pdf_folder: Path
     output_file: Path
+    progress_file: Path = field(default_factory=lambda: OUTPUT_DIR / "progress.csv")
+    page_progress_file: Path = field(default_factory=lambda: OUTPUT_DIR / "page_progress.csv")
     max_workers: Optional[int] = None
     max_test_files: Optional[int] = None  # 测试模式下处理的最大文件数
     processing_timeout: int = 300  # 单个文件处理超时时间(秒)
