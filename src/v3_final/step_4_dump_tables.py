@@ -10,7 +10,11 @@ from src.utils.dataframe import data2df
 
 def normalize_column_name(col):
     """Normalize column names by removing newlines and extra spaces"""
-    return ' '.join(str(col).replace('\n', ' ').split()).strip()
+    col = ' '.join(str(col).replace('\n', ' ').split()).strip()
+    # Standardize columns starting with 'Rating'
+    if col.lower().startswith('rating'):
+        return 'Rating'
+    return col
 
 if __name__ == '__main__':
     dfs = []  # Create a list to store DataFrames
@@ -32,6 +36,16 @@ if __name__ == '__main__':
                 paper_df = data2df(table)
                 # Normalize column names
                 paper_df.columns = [normalize_column_name(col) for col in paper_df.columns]
+                
+                # If there are multiple 'Rating' columns after normalization, 
+                # keep only the first one
+                if paper_df.columns.value_counts().get('Rating', 0) > 1:
+                    # Get indices of all 'Rating' columns
+                    rating_cols = paper_df.columns.get_indexer_for(['Rating'])
+                    # Keep the first Rating column, drop the rest
+                    cols_to_drop = paper_df.columns[rating_cols[1:]]
+                    paper_df = paper_df.drop(columns=cols_to_drop)
+                
                 paper_df = paper_df.reset_index(drop=True)
                 paper_df['file_name'] = paper.name
                 
