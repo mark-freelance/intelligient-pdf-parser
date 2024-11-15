@@ -20,8 +20,8 @@ def normalize_column_name(col):
     if col.lower().startswith('rating'):
         return 'Rating'
     # Standardize columns similar to 'Summary Assessment'
-    if get_similarity(col, 'Summary Assessment') > 0.8:
-        return 'Summary Assessment'
+    if get_similarity(col, 'SummaryAssessment') > 0.8:
+        return 'SummaryAssessment'
     # Standardize columns similar to 'Criterion'
     if get_similarity(col, 'Criterion') > 0.8:
         return 'Criterion'
@@ -49,12 +49,12 @@ if __name__ == '__main__':
                 paper_df.columns = [normalize_column_name(col) for col in paper_df.columns]
                 
                 # Keep only specified columns plus file_name
-                kept_columns = ['Criterion', 'Summary Assessment', 'Rating']
+                kept_columns = ['Criterion', 'SummaryAssessment', 'Rating']
                 existing_columns = [col for col in kept_columns if col in paper_df.columns]
                 paper_df = paper_df[existing_columns]
                 
                 # Add file_name column
-                paper_df['file_name'] = paper.name
+                paper_df['FileName'] = paper.name
                 
                 # Remove any duplicate columns
                 paper_df = paper_df.loc[:, ~paper_df.columns.duplicated()]
