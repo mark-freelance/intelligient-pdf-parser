@@ -4,14 +4,14 @@ import pymupdf
 from sqlmodel import select
 
 from src.database import get_db
-from models.paper import Paper, CandidateTable
-from src.config import root_path
+from src.models import Paper, CandidateTable
+from src.config import ROOT_PATH
 from src.log import logger
 
 
 def init_candidate_tables(paper: Paper, progress_callback=None):
     fn = paper.name
-    fp = root_path / fn
+    fp = ROOT_PATH / fn
     doc = pymupdf.open(fp)
     total_pages = len(doc)
 

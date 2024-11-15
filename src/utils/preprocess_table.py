@@ -5,7 +5,7 @@ import pandas as pd
 from sqlmodel import select
 
 from src.database import get_db
-from models.paper import Paper
+from src.models import Paper
 from src.log import logger
 from src.utils.dataframe import df2data
 

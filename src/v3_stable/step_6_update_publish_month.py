@@ -3,8 +3,8 @@ from sqlalchemy import null
 from sqlmodel import select
 
 from src.database import get_db
-from models.paper import Paper
-from src.config import root_path
+from src.models import Paper
+from src.config import ROOT_PATH
 from src.log import logger
 
 
@@ -55,7 +55,7 @@ def step_6_update_publish_month():
         papers = session.scalars(query).all()
         for (index, paper) in enumerate(papers[:]):
             logger.info(f"handling [{index} / {len(papers)}] paper: {paper.name}")
-            doc = pymupdf.open(root_path / paper.name)
+            doc = pymupdf.open(ROOT_PATH / paper.name)
             first_page: pymupdf.Page = doc[0]
 
             publish_month = find_month(first_page)

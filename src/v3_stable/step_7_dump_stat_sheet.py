@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlmodel import select
 
-from models.paper import Paper
+from src.models import Paper
 from src.config import DATA_DIR, PROJECT_STAT_SHEET_NAME
 from src.database import get_db
 

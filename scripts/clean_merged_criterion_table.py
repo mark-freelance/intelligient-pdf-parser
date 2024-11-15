@@ -1,7 +1,7 @@
 from sqlalchemy import select, null
 
 from src.database import get_db
-from models.paper import Paper
+from src.models import Paper
 
 if __name__ == '__main__':
     with get_db() as session:

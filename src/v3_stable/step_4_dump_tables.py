@@ -5,7 +5,7 @@ from sqlalchemy import null
 from sqlmodel import select
 
 from src.database import get_db
-from models.paper import Paper
+from src.models import Paper
 from src.config import PROJECT_SHEET_PATH
 from src.log import logger
 from src.utils.dataframe import data2df

@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import select, null
 
 from src.database import get_db
-from models.paper import Paper
+from src.models import Paper
 from src.log import logger
 from src.utils.dataframe import data2df, df2data
 from src.utils.find_longest_subsequence import find_longest_subsequence
