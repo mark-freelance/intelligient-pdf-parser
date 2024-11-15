@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 import fitz
 
-from format_text import format_text
+from v1_plain.src.format_text import format_text
 
 
 class TableInfo:

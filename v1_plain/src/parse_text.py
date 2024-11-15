@@ -4,8 +4,8 @@ import fitz
 from loguru import logger
 from sklearn.metrics.pairwise import cosine_similarity
 
-from v1_plain.src import DEFAULT_CONFIG as config
-from v1_plain.src import ModelLoader
+from .config import DEFAULT_CONFIG as config
+from .model_loader import ModelLoader
 
 # 获取模型和目标文本
 model = ModelLoader.get_model()
@@ -101,5 +101,3 @@ def process_page(page) -> Optional[Dict]:
     except Exception as e:
         logger.error(f"处理页面时发生错误: {str(e)}")
         return None
-
-

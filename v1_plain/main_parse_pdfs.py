@@ -15,7 +15,7 @@ from rich.table import Table
 
 from v1_plain.src.config import DEFAULT_CONFIG, STATUS_EMOJI
 from v1_plain.src.model_loader import ModelLoader
-from v1_plain.src.pdf_parser.search_text import find_summary_text
+from src.parse_text import find_summary_text
 
 
 class ProgressTracker:

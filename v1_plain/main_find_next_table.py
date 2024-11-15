@@ -1,11 +1,11 @@
 # 使用示例
-from src.pdf_parser.table import find_first_table, get_table_summary
+from src.parse_table import find_next_table, get_table_summary
 
 if __name__ == "__main__":
     pdf_path = "/Users/mark/Documents/Terminal evaluation report/1.10321_2024_ValTR_unep_gef_msp.pdf"
     start_page = 71
     
-    table, found_page = find_first_table(pdf_path, start_page)
+    table, found_page = find_next_table(pdf_path, start_page)
     
     if table:
         print("\n找到的第一个表格信息:")

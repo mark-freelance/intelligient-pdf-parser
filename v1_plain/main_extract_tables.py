@@ -1,5 +1,5 @@
-from format_text import format_text
-from src.table_finder import TableFinder
+from v1_plain.src.format_text import format_text
+from v1_plain.src.table_finder import TableFinder
 
 
 def main():

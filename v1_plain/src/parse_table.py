@@ -264,7 +264,7 @@ def _is_header_row(row1: List[Dict], row2: List[Dict]) -> bool:
     return similarity / len(row1) > 0.8
 
 
-def find_first_table(pdf_path: str, start_page: int = 0) -> Tuple[Optional[TableInfo], int]:
+def find_next_table(pdf_path: str, start_page: int = 0) -> Tuple[Optional[TableInfo], int]:
     """
     从指定页面开始查找第一个表格（包含跨页表格）
 

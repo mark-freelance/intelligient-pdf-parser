@@ -55,13 +55,16 @@ class ClaudePDFProcessor:
             json.dump(result, f)
         logger.info(f"Saved result to cache for file hash: {file_hash}")
 
-    def _split_pdf_content(self, pdf_content: bytes, chunk_size: int = 100) -> List[bytes]:
-        """将PDF内容分割成多个不超过chunk_size页的部分"""
+    def _split_pdf_content(self, pdf_content: bytes, chunk_size: int = 80) -> List[bytes]:
+        """将PDF内容分割成多个不超过chunk_size页的部分
+        claude 规定是 100，但是有可能导致 prompt 超过 200k，所以我们小一点        
+        """
         import io
         from PyPDF2 import PdfReader, PdfWriter
         
         reader = PdfReader(io.BytesIO(pdf_content))
         total_pages = len(reader.pages)
+        print(f"Total pages: {total_pages}")
         chunks = []
         
         for start in range(0, total_pages, chunk_size):
