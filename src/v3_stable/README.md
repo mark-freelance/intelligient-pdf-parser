@@ -6,6 +6,7 @@
 
 ```shell
 # 在根目录
+export PYTHONPATH=$(pwd)
 poetry shell
 poetry install
 cd src/v3_stable
