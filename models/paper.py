@@ -23,6 +23,9 @@ class Paper(SQLModel, table=True):
     merged_tables_count: Optional[int] = None
     merged_rows_count: Optional[int] = None
 
+    publish_month: Optional[str] = None
+    publish_month_verified: Optional[bool] = False
+
 
 class CandidateTable(SQLModel, table=True):
     __tablename__ = "target_table"

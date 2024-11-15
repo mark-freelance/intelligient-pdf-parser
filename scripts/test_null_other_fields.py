@@ -1,6 +1,6 @@
-from sqlalchemy import select, update
+from sqlalchemy import select
 
-from database import get_db
+from src.database import get_db
 from models.paper import Paper
 
 if __name__ == '__main__':

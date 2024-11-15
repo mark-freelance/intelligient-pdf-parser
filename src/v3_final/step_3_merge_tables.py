@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy import select, null
 
-from database import get_db
+from src.database import get_db
 from models.paper import Paper
 from src.log import logger
 from src.utils.dataframe import data2df, df2data

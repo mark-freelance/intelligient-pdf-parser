@@ -7,7 +7,8 @@ import base64
 
 from loguru import logger
 from anthropic import Anthropic
-import PyPDF2
+import json
+
 
 class ClaudePDFProcessor:
     def __init__(self, api_key: str = os.environ['ANTHROPIC_API_KEY']):
@@ -210,7 +211,6 @@ Please format your response as a JSON object with this structure:
                 print(f"Chunk {i+1} response:", text)
 
                 try:
-                    import json
                     chunk_result = json.loads(text)
                     results.append(chunk_result)
                 except json.JSONDecodeError as e:

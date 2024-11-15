@@ -4,7 +4,7 @@ import pandas as pd
 from sqlalchemy import null
 from sqlmodel import select
 
-from database import get_db
+from src.database import get_db
 from models.paper import Paper
 from src.config import FINAL_SHEET_PATH
 from src.log import logger

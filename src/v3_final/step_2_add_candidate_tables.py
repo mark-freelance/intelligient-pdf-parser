@@ -1,18 +1,17 @@
-import pathlib
 from typing import List
 
 import pymupdf
 from sqlmodel import select
 
-from database import get_db
+from src.database import get_db
 from models.paper import Paper, CandidateTable
-from src.config import root_dir
+from src.config import root_path
 from src.log import logger
 
 
 def init_candidate_tables(paper: Paper, progress_callback=None):
     fn = paper.name
-    fp = pathlib.Path(root_dir).joinpath(fn)
+    fp = root_path / fn
     doc = pymupdf.open(fp)
     total_pages = len(doc)
 

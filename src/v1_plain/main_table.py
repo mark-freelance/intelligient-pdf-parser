@@ -1,4 +1,4 @@
-from src.config import root_dir
+from src.config import root_path
 from src.v3_final.step_2_add_candidate_tables import init_candidate_tables
 
 import concurrent.futures
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     console = Console()
     
     try:
-        results_df = process_all_pdfs(root_dir)
+        results_df = process_all_pdfs(root_path)
 
         # 创建结果统计表格
         table = RichTable(title="处理结果统计", show_header=True, header_style="bold magenta")
@@ -288,7 +288,7 @@ if __name__ == "__main__":
             for _, row in failed_cases.iterrows():
                 console.print(f"[red]• {row['name']}[/] - {row['note']}")
 
-        console.print(f"\n[bold green]结果已保存至:[/] {root_dir}/table_extraction_results.csv")
+        console.print(f"\n[bold green]结果已保存至:[/] {root_path}/table_extraction_results.csv")
         
     except Exception as e:
         console.print(f"[bold red]处理过程中发生错误:[/] {str(e)}")

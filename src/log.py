@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from loguru import logger
+from loguru import logger as _logger
 
 from src.config import OUTPUT_DIR
 
@@ -22,13 +22,15 @@ class LogConfig:
 log_config = LogConfig()
 
 # 移除默认的 stderr 处理器
-logger.remove()
+_logger.remove()
 
 # 添加控制台处理器
-logger.add(sys.stderr, level=log_config.console_level, format=log_config.console_format, colorize=True)
+_logger.add(sys.stderr, level=log_config.console_level, format=log_config.console_format, colorize=True)
 
 # 添加文件处理器
-logger.add(str(log_config.log_file),
+_logger.add(str(log_config.log_file),
            level=log_config.file_level,
            format=log_config.log_format,
            rotation=log_config.rotation)
+
+logger = _logger
