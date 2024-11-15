@@ -6,16 +6,20 @@
 
 ## Tips
 
-### 字体颜色是不可靠谱的
+### 字体颜色是不可靠的
 
 14:18:53 | [6 / 444] parsing file:///Users/mark/Documents/Terminal%20evaluation%20report/9.9884_2024_ValTR_unep_gef_msp.pdf
 14:19:04 | found table at page(71-78)
 
 ![img.png](docs/unreliable-font-color.png)
 
+### 表头是不可靠的
+
+![img.png](docs/unreliable-header.png)
+
 ## Bad Cases
 
-### 诡异重复 【优先解决】
+### [Solved] 诡异重复
 
 #### bugs
 
@@ -27,7 +31,7 @@
 14:19:39 | [DUPLICATE], last table at page(74-77), current page at 78
 ![img.png](docs/wield-refound-2.png)
 
-#### 原因
+#### 解决方案
 
 把含 col.. 的空列去掉就行了。
 
@@ -44,7 +48,13 @@
 2024-11-15 15:08:09 | WARNING | [DUPLICATE], last table at page(92-93), current page at 94
 ```
 
-### 定义表导致重复
+但是竟然还有单元格重复的……
+
+![img.png](docs/cell-duplication.png)
+
+### 定义表误匹配
+
+> 一般只有一级指标，以及两列，但也有三列的（122#10 加 ref.)等
 
 ```
 Criterion Rating
@@ -69,3 +79,23 @@ Overall Project Performance Rating Satisfactory
 14:19:18 | [DUPLICATE], last table at page(15-15), current page at 79
 ![img.png](docs/definition-table-2.png)
 
+### 列需要向下合并
+
+> 这种一般是紧接着出错，即 56-59，然后 60 出错，但是不能直接连接，因为会有脏行
+> 解决办法有二：
+> 1. 【暴力】按照 顺序或者 sentiment 进行列对齐，然后删除 criterion 为空的行
+> 2. 【推荐】先合并列，以\n合并编码，再对齐
+
+16:50:37 | [44 / 444] parsing file:///Users/mark/Documents/Terminal%20evaluation%20report/57.01607_02088_2023_ValTR_unep_TTVC.pdf
+16:50:42 | [DUPLICATE], last table at page(61-68), current page at 69
+![img.png](docs/merge-down-header.png)
+
+16:51:27 | [71 / 444] parsing file:///Users/mark/Documents/Terminal%20evaluation%20report/90.9820_2023_ValTR_unep_gef_msp_CBIT%20Ghana.pdf
+16:51:32 | [DUPLICATE], last table at page(42-45), current page at 46
+![img.png](docs/merge-down-header-2.png)
+
+### 表格和表名连在了一起
+
+17:06:41 | [89 / 444] parsing file:///Users/mark/Documents/Terminal%20evaluation%20report/117.PIMS%20Id%2001659%2002032_2023_Partnership_for%20Action_On_Green_Economy%20_PAGE_Op%20Strategy.pdf
+17:06:49 | [DUPLICATE], last table at page(16-16), current page at 83
+![img.png](docs/name-join.png)
