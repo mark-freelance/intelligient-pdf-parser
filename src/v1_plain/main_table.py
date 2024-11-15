@@ -1,5 +1,5 @@
 from src.config import root_path
-from src.v3_final.step_2_add_candidate_tables import init_candidate_tables
+from src.v3_stable.step_2_add_candidate_tables import init_candidate_tables
 
 import concurrent.futures
 import os

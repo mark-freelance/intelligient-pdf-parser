@@ -1,5 +1,40 @@
 # Sentiment based PDF Parser
 
+## Usage
+
+### 初始化项目
+
+```shell
+# 在根目录
+poetry shell
+poetry install
+cd src/v3_stable
+```
+
+### 初始化数据：一步步来即可
+
+```shell
+# init
+python step_1_pages_from_local.py
+
+# table relative
+python step_2_add_candidate_tables.py
+python step_3_merge_tables.py
+python step_4_dump_tables.py
+python step_5_pivot_table.py
+
+# date relative
+python step_6_update_publish_month.py
+python step_7_dump_stat_sheet.py
+```
+
+### 更新表结构后 （models)
+
+```shell
+alembic revision --autogenerate -m {MESSAGE}
+alembic upgrade head
+```
+
 ## Tips
 
 ### 字体颜色是不可靠的
