@@ -1,5 +1,9 @@
 # Notes
 
+## pymupdf 合并表格教程
+
+参考：[PyMuPDF-Utilities/table-analysis/join_tables.ipynb at master · pymupdf/PyMuPDF-Utilities](https://github.com/pymupdf/PyMuPDF-Utilities/blob/master/table-analysis/join_tables.ipynb)
+
 ## V3 Step 5 Relative
 
 输入表格的列为 Criterion Rating SummaryAssessment FileName
