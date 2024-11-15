@@ -36,7 +36,7 @@ if __name__ == '__main__':
         papers = session.scalars(query).all()
         logger.info(f'papers count={len(papers)}')
         
-        for (index, paper) in enumerate(papers[:100]):
+        for (index, paper) in enumerate(papers[:]):
             logger.info(f"handling [{index} / {len(papers)}] paper: {paper.name}")
 
             table = paper.merged_criterion_table
