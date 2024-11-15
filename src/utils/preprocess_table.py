@@ -1,16 +1,13 @@
-import logging
-
-
 import re
 from typing import List
 
-import numpy as np
 import pandas as pd
 from sqlmodel import select
 
 from database import get_db
 from models.paper import Paper
 from src.log import logger
+from src.utils.dataframe import df2data
 
 
 def preprocess_array(data: List[List[str]], debug=False) -> List[List[str]]:
@@ -101,7 +98,7 @@ table 是 pymupdf 中的 table 对象，它的表头里会用 r`Col\d+` 表示�
     if first_col:
         first_col_values = df[first_col].fillna('')
         first_col_has_content = not all(str(val).strip() == '' for val in first_col_values)
-        
+
         if first_col_has_content:
             # Find the first non-empty header to merge with
             for col in df.columns:
@@ -115,24 +112,24 @@ table 是 pymupdf 中的 table 对象，它的表头里会用 r`Col\d+` 表示�
     for aux_col in aux_cols:
         if aux_col not in df.columns:  # Skip if already dropped
             continue
-            
+
         current_cols = df.columns.tolist()
         aux_idx = current_cols.index(aux_col)
-        
+
         # Check if auxiliary column has content
         col_values = df[aux_col].fillna('')
         is_empty = all(str(val).strip() == '' for val in col_values)
         if is_empty:
             df = df.drop(columns=[aux_col])
             continue
-            
+
         # Try to merge with adjacent columns
         left_idx = aux_idx - 1
         right_idx = aux_idx + 1
-        
+
         can_merge_left = left_idx >= 0
         can_merge_right = right_idx < len(current_cols)
-        
+
         # Modified merging logic: prefer merging with non-auxiliary columns
         if can_merge_right:
             right_col = current_cols[right_idx]
@@ -149,7 +146,7 @@ table 是 pymupdf 中的 table 对象，它的表头里会用 r`Col\d+` 表示�
                         df.iat[i, right_idx] = aux_val
                 df = df.drop(columns=[aux_col])
                 continue
-                
+
         if can_merge_left:
             left_col = current_cols[left_idx]
             if left_col not in aux_cols and str(left_col).strip():
@@ -165,7 +162,7 @@ table 是 pymupdf 中的 table 对象，它的表头里会用 r`Col\d+` 表示�
                         df.iat[i, left_idx] = aux_val
                 df = df.drop(columns=[aux_col])
                 continue
-                
+
         # If we couldn't merge with non-auxiliary columns, try auxiliary columns
         if can_merge_right:
             right_col = current_cols[right_idx]
@@ -180,7 +177,7 @@ table 是 pymupdf 中的 table 对象，它的表头里会用 r`Col\d+` 表示�
                     df.iat[i, right_idx] = aux_val
             df = df.drop(columns=[aux_col])
             continue
-                
+
         if can_merge_left:
             left_col = current_cols[left_idx]
             for i in range(len(df)):
@@ -218,15 +215,10 @@ table 是 pymupdf 中的 table 对象，它的表头里会用 r`Col\d+` 表示�
     # Convert to list format and return
     # First convert all values to strings to ensure homogeneous data
     df = df.astype(str)
-    
-    # Convert columns and values to lists separately and combine
-    header = df.columns.tolist()
-    rows = df.values.tolist()
-    data = [header] + rows
 
     if debug:
         logger.debug(f"\nFinal data into db:\n{df.to_markdown(tablefmt='grid')}")
-    return data
+    return df2data(df)
 
 
 if __name__ == '__main__':
@@ -234,7 +226,7 @@ if __name__ == '__main__':
 
     with get_db() as session:
         # 更新没有合表的
-        query = select(Paper).where(# Paper.merged_criterion_table == None &
+        query = select(Paper).where(  # Paper.merged_criterion_table == None &
             Paper.criterion_tables_count is not None, Paper.criterion_tables_count > 0)
         papers = session.scalars(query).all()
         for (index, paper) in enumerate(papers[:]):

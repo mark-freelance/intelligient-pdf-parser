@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Optional, List
 from uuid import uuid4
 
-from pydantic import BaseModel
 from sqlalchemy import JSON, Column
 from sqlmodel import SQLModel, Field, Relationship
 
@@ -19,12 +18,10 @@ class Paper(SQLModel, table=True):
 
     criterion_tables_count: Optional[int] = None
     criterion_tables: List["CandidateTable"] = Relationship(back_populates="paper")
+
     merged_criterion_table: Optional[List[List[str]]] = Field(default=None, sa_column=Column(JSON))
-
-
-class StandardizedTable(BaseModel):
-    columns: List[str] = Field(default_factory=list)
-    data: List[List[str]] = Field(default_factory=list)
+    merged_tables_count: Optional[int] = None
+    merged_rows_count: Optional[int] = None
 
 
 class CandidateTable(SQLModel, table=True):

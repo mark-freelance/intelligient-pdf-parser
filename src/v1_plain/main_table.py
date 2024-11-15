@@ -1,5 +1,5 @@
 from src.config import root_dir
-from src.v3_clean.find_tables import find_tables
+from src.v3_final.step_2_add_candidate_tables import init_candidate_tables
 
 import concurrent.futures
 import os
@@ -54,7 +54,7 @@ def process_single_pdf(index: int, pdf_path: pathlib.Path, progress: Progress, t
         )
     
     try:
-        table_data, start_page, end_page = find_tables(
+        table_data, start_page, end_page = init_candidate_tables(
             pdf_path.name,
             progress_callback=update_page_progress
         )

@@ -11,7 +11,7 @@ from src.config import OUTPUT_DIR
 @dataclass
 class LogConfig:
     # 日志相关配置
-    console_level: str = "DEBUG"
+    console_level: str = "INFO"
     file_level: str = "DEBUG"
     log_file: Path = OUTPUT_DIR / f"{datetime.now().isoformat()}.log"  # 使用OUTPUT_DIR
     log_format: str = "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
