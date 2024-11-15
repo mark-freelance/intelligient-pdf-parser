@@ -1,6 +1,7 @@
 import pandas as pd
 from sqlalchemy import null
 from sqlmodel import select
+from difflib import SequenceMatcher
 
 from database import get_db
 from models.paper import Paper
@@ -8,12 +9,22 @@ from src.config import DATA_DIR
 from src.log import logger
 from src.utils.dataframe import data2df
 
+def get_similarity(a, b):
+    """Calculate similarity ratio between two strings"""
+    return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+
 def normalize_column_name(col):
     """Normalize column names by removing newlines and extra spaces"""
     col = ' '.join(str(col).replace('\n', ' ').split()).strip()
     # Standardize columns starting with 'Rating'
     if col.lower().startswith('rating'):
         return 'Rating'
+    # Standardize columns similar to 'Summary Assessment'
+    if get_similarity(col, 'Summary Assessment') > 0.8:
+        return 'Summary Assessment'
+    # Standardize columns similar to 'Criterion'
+    if get_similarity(col, 'Criterion') > 0.8:
+        return 'Criterion'
     return col
 
 if __name__ == '__main__':
@@ -37,16 +48,12 @@ if __name__ == '__main__':
                 # Normalize column names
                 paper_df.columns = [normalize_column_name(col) for col in paper_df.columns]
                 
-                # If there are multiple 'Rating' columns after normalization, 
-                # keep only the first one
-                if paper_df.columns.value_counts().get('Rating', 0) > 1:
-                    # Get indices of all 'Rating' columns
-                    rating_cols = paper_df.columns.get_indexer_for(['Rating'])
-                    # Keep the first Rating column, drop the rest
-                    cols_to_drop = paper_df.columns[rating_cols[1:]]
-                    paper_df = paper_df.drop(columns=cols_to_drop)
+                # Keep only specified columns plus file_name
+                kept_columns = ['Criterion', 'Summary Assessment', 'Rating']
+                existing_columns = [col for col in kept_columns if col in paper_df.columns]
+                paper_df = paper_df[existing_columns]
                 
-                paper_df = paper_df.reset_index(drop=True)
+                # Add file_name column
                 paper_df['file_name'] = paper.name
                 
                 # Remove any duplicate columns
