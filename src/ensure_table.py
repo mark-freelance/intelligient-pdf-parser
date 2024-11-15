@@ -10,6 +10,9 @@ from src.log import logger
 
 
 def ensure_table(fp: str, progress_callback=None):
+    """
+
+    """
     doc = pymupdf.open(fp)
     total_pages = len(doc)
 
@@ -32,7 +35,10 @@ def ensure_table(fp: str, progress_callback=None):
 
         for table in tables:
             headers = [i.strip().lower() for i in table.header.names if i]
-            if 'criterion' in headers:
+            if (
+                    'criterion' in headers
+                    and 'summary assessment' in headers  # 筛选结果而非定义
+            ):
                 logger.info(f'page: {page_index}, headers: {headers}')
                 candidate_tables.append(table)
             else:
