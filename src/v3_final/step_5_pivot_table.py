@@ -1,7 +1,7 @@
 import pandas as pd
 from fuzzywuzzy import fuzz
 
-from src.config import FINAL_SHEET_PATH
+from src.config import PROJECT_SHEET_PATH
 
 # Define the standard level 1 criteria
 STANDARD_L1_CRITERIA = ["Strategic Relevance", "Quality of Project Design", "Nature of External Context",
@@ -89,12 +89,12 @@ def pivot_table(df):
     df = df[columns]
 
     # Save the pivot table
-    output_path = FINAL_SHEET_PATH.as_posix().replace('.xlsx', '_pivot.xlsx')
+    output_path = PROJECT_SHEET_PATH.as_posix().replace('.xlsx', '_pivot.xlsx')
     df.to_excel(output_path, index=False)
 
     return df
 
 
 if __name__ == "__main__":
-    df = pd.read_excel(FINAL_SHEET_PATH)
+    df = pd.read_excel(PROJECT_SHEET_PATH)
     pivot_table(df)

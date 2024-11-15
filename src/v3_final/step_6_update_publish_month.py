@@ -51,10 +51,10 @@ def find_month(page: pymupdf.Page) -> str | None:
 
 def step_6_update_publish_month():
     with get_db() as session:
-        query = select(Paper).where(Paper.publish_month_verified == False, Paper.publish_month == null())
+        query = select(Paper).where(Paper.publish_month_verified == null())
         papers = session.scalars(query).all()
         for (index, paper) in enumerate(papers[:]):
-            logger.info(f"handling [{index} / {len(papers)}] paper: {paper}")
+            logger.info(f"handling [{index} / {len(papers)}] paper: {paper.name}")
             doc = pymupdf.open(root_path / paper.name)
             first_page: pymupdf.Page = doc[0]
 

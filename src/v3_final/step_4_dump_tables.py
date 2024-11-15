@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from src.database import get_db
 from models.paper import Paper
-from src.config import FINAL_SHEET_PATH
+from src.config import PROJECT_SHEET_PATH
 from src.log import logger
 from src.utils.dataframe import data2df
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
                 result_df = pd.concat([result_df, df], ignore_index=True)
 
             logger.info(f"Successfully concatenated. Final shape: {result_df.shape}")
-            result_df.to_excel(FINAL_SHEET_PATH, index=False)
+            result_df.to_excel(PROJECT_SHEET_PATH, index=False)
         except Exception as e:
             logger.error(f"Error during concatenation: {str(e)}")
             # Log more detailed information
