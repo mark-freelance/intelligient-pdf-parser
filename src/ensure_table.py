@@ -1,11 +1,9 @@
-import os
 import pathlib
-import re
 import time
 
 import pymupdf
 
-from src.config import root_dir
+from src.config import root_dir, sorted_file_names
 from src.log import logger
 
 
@@ -51,12 +49,11 @@ def ensure_table(fp: str, progress_callback=None):
 
 if __name__ == '__main__':
     start_index = 129
-    files = [i for i in os.listdir(root_dir) if i.endswith(".pdf")]
-    data = {"total": len(files), "skipped": start_index - 1}
+    data = {"total": len(sorted_file_names), "skipped": start_index - 1}
     logger.info(f"Started Parsing: {data}")
-    for index, fn in enumerate(sorted(files, key=lambda x: int(re.search(r'^\d+', x).group())), 1):
+    for index, fn in enumerate(sorted_file_names, 1):
         if index >= start_index:
             fp = pathlib.Path(root_dir).joinpath(fn)
-            logger.info(f'[{index} / {len(files)}] parsing {fp.as_uri()}')
+            logger.info(f'[{index} / {len(sorted_file_names)}] parsing {fp.as_uri()}')
             ensure_table(fp)
             time.sleep(0.1)
