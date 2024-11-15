@@ -1,5 +1,5 @@
 from src.config import root_dir
-from src.ensure_table import ensure_table
+from src.v3_clean.find_tables import find_tables
 
 import concurrent.futures
 import os
@@ -54,7 +54,7 @@ def process_single_pdf(index: int, pdf_path: pathlib.Path, progress: Progress, t
         )
     
     try:
-        table_data, start_page, end_page = ensure_table(
+        table_data, start_page, end_page = find_tables(
             pdf_path.name,
             progress_callback=update_page_progress
         )
