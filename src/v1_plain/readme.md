@@ -15,4 +15,3 @@
 比对过程：
 
 ![img.png](../../assets/text-comparison-algo.png)
-
