@@ -1,5 +1,5 @@
 # 使用示例
-from src.parse_table import find_next_table, get_table_summary
+from src.v1_plain.parse_table import find_next_table, get_table_summary
 
 if __name__ == "__main__":
     pdf_path = "/Users/mark/Documents/Terminal evaluation report/1.10321_2024_ValTR_unep_gef_msp.pdf"

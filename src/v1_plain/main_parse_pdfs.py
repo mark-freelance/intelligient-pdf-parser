@@ -1,7 +1,6 @@
 import atexit
 import concurrent.futures
 import re
-import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from threading import Lock
@@ -13,9 +12,9 @@ from rich.console import Console
 from rich.live import Live
 from rich.table import Table
 
-from src.v1_plain.src.config import DEFAULT_CONFIG, STATUS_EMOJI
-from src.v1_plain.src.model_loader import ModelLoader
-from src.parse_text import find_summary_text
+from src.v1_plain.config import DEFAULT_CONFIG, STATUS_EMOJI
+from src.v1_plain.model_loader import ModelLoader
+from src.v1_plain.parse_text import find_summary_text
 
 
 class ProgressTracker:
