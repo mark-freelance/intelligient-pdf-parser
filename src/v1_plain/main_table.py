@@ -1,5 +1,5 @@
-from config import root_dir
-from ensure_table import ensure_table
+from src.config import root_dir
+from src.ensure_table import ensure_table
 
 import concurrent.futures
 import os

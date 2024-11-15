@@ -1,13 +1,9 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict
 from pathlib import Path
+from typing import Optional
 
-# 获取项目根目录和输出目录
-PROJECT_ROOT = Path(__file__).parent.parent
-OUTPUT_DIR = PROJECT_ROOT / ".out"
-OUTPUT_DIR.mkdir(exist_ok=True) # 确保输出目录存在
-
-
+from src.config import OUTPUT_DIR
+from src.log import LogConfig
 
 
 @dataclass
@@ -21,11 +17,13 @@ class PDFProcessingConfig:
     max_test_files: Optional[int] = None  # 测试模式下处理的最大文件数
     processing_timeout: int = 300  # 单个文件处理超时时间(秒)
 
+
 @dataclass
 class ModelConfig:
     # 模型相关配置
     model_name: str = 'all-MiniLM-L6-v2'
     device: str = 'cpu'
+
 
 @dataclass
 class TargetConfig:
@@ -34,15 +32,6 @@ class TargetConfig:
     table_position_tolerance: int = 50  # 表格位置匹配的容差(像素)
     min_confidence_threshold: float = 0.5  # 最小相似度阈值
 
-@dataclass
-class LogConfig:
-    # 日志相关配置
-    console_level: str = "INFO"
-    file_level: str = "DEBUG"
-    log_file: Path = OUTPUT_DIR / "pdf_parser.log"  # 使用OUTPUT_DIR
-    log_format: str = "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
-    console_format: str = "<green>{time:HH:mm:ss}</green> | {message}"
-    rotation: str = "100 MB"
 
 @dataclass
 class Config:
@@ -77,13 +66,12 @@ PDF处理配置:
     日志轮转: {self.log.rotation}
 """
 
+
 # 默认配置
-DEFAULT_CONFIG = Config(
-    pdf=PDFProcessingConfig(
-        pdf_folder=Path('/Users/mark/Documents/Terminal evaluation report'),
-        output_file=OUTPUT_DIR / "pdf_processing_results.xlsx"  # 使用OUTPUT_DIR
-    )
-)
+DEFAULT_CONFIG = Config(pdf=PDFProcessingConfig(pdf_folder=Path('/Users/mark/Documents/Terminal evaluation report'),
+                                                output_file=OUTPUT_DIR / "pdf_processing_results.xlsx"
+                                                # 使用OUTPUT_DIR
+                                                ))
 STATUS_EMOJI = {
     'pending': '⏳',
     'opening': '📂',

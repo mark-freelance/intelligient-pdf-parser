@@ -7,14 +7,14 @@ from pathlib import Path
 from threading import Lock
 
 import pandas as pd
-from loguru import logger
+from src.log import logger
 from rich import box
 from rich.console import Console
 from rich.live import Live
 from rich.table import Table
 
-from v1_plain.src.config import DEFAULT_CONFIG, STATUS_EMOJI
-from v1_plain.src.model_loader import ModelLoader
+from src.v1_plain.src.config import DEFAULT_CONFIG, STATUS_EMOJI
+from src.v1_plain.src.model_loader import ModelLoader
 from src.parse_text import find_summary_text
 
 
@@ -536,18 +536,6 @@ def save_statistics(results, output_path):
 def main():
     # 加载配置
     config = DEFAULT_CONFIG
-
-    # 移除默认的 stderr 处理器
-    logger.remove()
-
-    # 添加控制台处理器
-    logger.add(sys.stderr, level=config.log.console_level, format=config.log.console_format, colorize=True)
-
-    # 添加文件处理器
-    logger.add(str(config.log.log_file),
-               level=config.log.file_level,
-               format=config.log.log_format,
-               rotation=config.log.rotation)
 
     # 打印配置信息
     logger.info("当前配置:")

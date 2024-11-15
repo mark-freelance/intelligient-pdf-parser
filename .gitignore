@@ -1,6 +1,6 @@
 **/.idea
 **/.ipynb_checkpoints/
-logs/*
+.out/logs/*
 **/__pycache__
 .DS_Store
 .out*/*
