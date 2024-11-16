@@ -48,7 +48,7 @@ def init_candidate_tables(paper: Paper, progress_callback=None):
     return paper, candidate_tables
 
 
-if __name__ == '__main__':
+def step_2_add_candidate_tables():
     with get_db() as session:
         query = select(Paper).where(Paper.criterion_tables_count == None)
         papers = session.scalars(query).all()
@@ -58,3 +58,7 @@ if __name__ == '__main__':
             session.add(paper)
             session.add_all(candidate_tables)
             session.commit()
+
+
+if __name__ == '__main__':
+    step_2_add_candidate_tables()

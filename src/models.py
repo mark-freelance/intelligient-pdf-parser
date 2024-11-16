@@ -27,6 +27,8 @@ class Paper(SQLModel, table=True):
     merged_criterion_table: Optional[List[List[str]]] = Field(default=None, sa_column=Column(JSON), description="合并后的目标表")
     merged_tables_count: Optional[int] = Field(default=None, description="合并表的来源表格数目")
     merged_rows_count: Optional[int] = Field(default=None, description="合并表后的总行数")
+    merged_table_start_page: Optional[int] = None
+    merged_table_end_page: Optional[int] = None
 
     publish_month: Optional[str] = Field(default=None, description="第一页解析出的发表月份")
     publish_month_verified: Optional[bool] = Field(default=False, description="是否已经尝试过解析第一页")

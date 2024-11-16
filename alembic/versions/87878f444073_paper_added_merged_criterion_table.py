@@ -1,7 +1,7 @@
 """paper added merged_criterion_table
 
 Revision ID: 87878f444073
-Revises: 46808c5b1049
+Revises: a242690f5edf
 Create Date: 2024-11-15 22:28:47.086935
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '87878f444073'
-down_revision: Union[str, None] = '46808c5b1049'
+down_revision: Union[str, None] = 'a242690f5edf'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

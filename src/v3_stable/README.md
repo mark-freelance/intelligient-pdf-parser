@@ -8,6 +8,11 @@
 
 ### 数据库
 
+```shell
+# 初始化数据库
+alembic upgrade head
+```
+
 表定义在 [models.py](../models.py)
 
 数据库在 [database.db](../../database.db)，是 sqlite，装了驱动后直接点击就可以看
@@ -28,7 +33,7 @@ cd src/v3_stable
 
 ```shell
 # init
-python step_1_pages_from_local.py
+python step_1_pages_local2db.py
 
 # table relative
 python step_2_add_candidate_tables.py

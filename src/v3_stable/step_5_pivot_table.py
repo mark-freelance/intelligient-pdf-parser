@@ -95,6 +95,10 @@ def pivot_table(df):
     return df
 
 
-if __name__ == "__main__":
+def step_5_pivot_table():
     df = pd.read_excel(PROJECT_SHEET_PATH)
     pivot_table(df)
+
+
+if __name__ == "__main__":
+    step_5_pivot_table()

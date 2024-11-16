@@ -30,8 +30,7 @@ def normalize_column_name(col):
         return 'Criterion'
     return col
 
-
-if __name__ == '__main__':
+def step_4_dump_tables():
     dfs = []  # Create a list to store DataFrames
     all_columns = set()  # Track all unique columns
 
@@ -107,3 +106,8 @@ if __name__ == '__main__':
                 logger.error(f"Column types: {dfs[0].dtypes}")
     else:
         logger.warning("No valid DataFrames to concatenate")
+
+
+
+if __name__ == '__main__':
+    step_4_dump_tables()
