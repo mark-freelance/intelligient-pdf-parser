@@ -6,6 +6,8 @@ from sqlalchemy import pool
 from alembic import context
 from sqlmodel import SQLModel
 
+from src.models import Paper, CandidateTable # noqa # 不加这句会使 meta 表缺失
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
