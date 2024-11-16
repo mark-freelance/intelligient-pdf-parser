@@ -4,7 +4,9 @@
 
 连续花了两天给朋友友情帮忙做的一个小项目，目标是在 444 个长篇论文里挖掘某种语义的表格数据。
 
-## Insight
+![img.png](assets/target-table.png)
+
+## Insights
 
 比较有意思、有启发的点：
 
@@ -22,3 +24,7 @@
 
 - 【推荐：☆☆☆☆☆】基于数据库控制 + 人工筛查 + 傻瓜单进程的稳健解决方案：[v3_stable](src/v3_stable)
 
+## Other References
+
+- [analysis.md](../../docs/analysis.md)
+- [notes.md](../../docs/notes.md)

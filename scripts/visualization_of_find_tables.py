@@ -36,7 +36,7 @@ def show_image(item, title=""):
     Generates an RGB Pixmap from item using a constant DPI and using matplotlib
     to show it inline of the notebook.
     """
-    DPI = 150  # use this resolution
+    DPI = 300  # use this resolution
     import numpy as np
     import matplotlib.pyplot as plt
 
@@ -46,19 +46,21 @@ def show_image(item, title=""):
     plt.figure(dpi=DPI)  # set the figure's DPI
     plt.title(title)  # set title of image
     _ = plt.imshow(img, extent=(0, pix.w * 72 / DPI, pix.h * 72 / DPI, 0))
+    plt.show()
 
 if __name__ == '__main__':
 
     with get_db() as session:
-        paper = session.scalar(select(Paper).where(Paper.merged_criterion_table != null()))
-        doc = fitz.open(ROOT_PATH / paper.name)
-        page = doc[paper.merged_table_start_page - 1]
+        papers = session.scalars(select(Paper).where(Paper.merged_criterion_table != null())).all()
+        for paper in papers:
+            doc = fitz.open(ROOT_PATH / paper.name)
+            page = doc[paper.merged_table_start_page - 1]
 
-        tabs = page.find_tables()  # detect the tables
-        for i, tab in enumerate(tabs):  # iterate over all tables
-            for cell in tab.header.cells:
-                page.draw_rect(cell, color=fitz.pdfcolor["red"], width=0.3)
-            page.draw_rect(tab.bbox, color=fitz.pdfcolor["green"])
-            print(f"Table {i} column names: {tab.header.names}, external: {tab.header.external}")
+            tabs = page.find_tables()  # detect the tables
+            for i, tab in enumerate(tabs):  # iterate over all tables
+                for cell in tab.header.cells:
+                    page.draw_rect(cell, color=fitz.pdfcolor["red"], width=0.3)
+                page.draw_rect(tab.bbox, color=fitz.pdfcolor["green"])
+                print(f"Table {i} column names: {tab.header.names}, external: {tab.header.external}")
 
-        show_image(page, f"Table & Header BBoxes")
+            show_image(page, f"Table & Header BBoxes")

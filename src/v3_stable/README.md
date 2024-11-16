@@ -19,32 +19,19 @@ alembic upgrade head
 
 数据库连接与工具函数在 [database.py](../database.py)
 
-### 初始化项目
+### 运行
 
 ```shell
 # 在根目录
 export PYTHONPATH=$(pwd)
+
 poetry shell
 poetry install
-cd src/v3_stable
+
+python src/v3_stable/main.py
 ```
 
-### 初始化数据：一步步来即可
-
-```shell
-# init
-python step_1_pages_local2db.py
-
-# table relative
-python step_2_add_candidate_tables.py
-python step_3_merge_tables.py
-python step_4_dump_tables.py
-python step_5_pivot_table.py
-
-# date relative
-python step_6_update_publish_month.py
-python step_7_dump_stat_sheet.py
-```
+## 二开
 
 ### 更新表结构后 （models)
 
@@ -52,8 +39,3 @@ python step_7_dump_stat_sheet.py
 alembic revision --autogenerate -m {MESSAGE}
 alembic upgrade head
 ```
-
-## Other References
-
-- [analysis.md](../../docs/analysis.md)
-- [notes.md](../../docs/notes.md)

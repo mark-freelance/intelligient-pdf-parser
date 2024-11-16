@@ -8,7 +8,7 @@ from src.v3_stable.step_7_dump_stat_sheet import step_7_dump_stat_sheet
 
 if __name__ == '__main__':
     step_1_pages_local2db()
-    step_2_add_candidate_tables()
+    step_2_add_candidate_tables() # it's time-costly
     step_3_merge_tables()
     step_4_dump_tables()
     step_5_pivot_table()
