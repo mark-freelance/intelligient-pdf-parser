@@ -2,9 +2,13 @@
 
 ## Overview
 
-基于 rich 的并发可视化脚本，不过意义不是很大，不如基于数据库的增量控制系统：
+基于 rich 的并发可视化脚本。
 
-![rich](../../assets/terminal-demo.png)
+![img.png](../../assets/rich-1.png)
+
+![img.png](../../assets/rich-2.png)
+
+不过意义不是很大，不如基于数据库的增量控制系统。
 
 ## 文本比对算法
 
