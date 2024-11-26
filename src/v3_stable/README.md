@@ -28,7 +28,7 @@ export PYTHONPATH=$(pwd)
 poetry shell
 poetry install
 
-python src/v3_stable/main.py
+python src/v3_stable/main_json.py
 ```
 
 ## 二开
