@@ -1,0 +1,2 @@
+- 前端在 frontend 文件夹，脚手架是 T3，框架是 nextjs、tailwindcss、trpc、react，包管理器是 pnpm
+- 后端在 backend 文件夹
